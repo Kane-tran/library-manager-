@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Reservations')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-bookmark me-2"></i>My Reservations</h2>
+
+    <div th:if="${reservations.empty}" class="text-center py-5 text-muted">
+        <i class="bi bi-bookmark fs-1"></i>
+        <p class="mt-2">No reservations found.</p>
+        <a th:href="@{/books}" class="btn btn-primary">Browse Books</a>
+    </div>
+
+    <div class="card shadow-sm" th:unless="${reservations.empty}">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr><th>Book</th><th>Reserved On</th><th>Queue Position</th><th>Status</th><th>Expires</th><th></th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${reservations.content}">
+                        <td>
+                            <a th:href="@{/books/{id}(id=${r.book.id})}" th:text="${r.book.title}"
+                               class="fw-semibold text-decoration-none"></a>
+                        </td>
+                        <td th:text="${#temporals.format(r.reservationDate,'dd/MM/yyyy')}"></td>
+                        <td>
+                            <span th:if="${r.status.name() == 'PENDING'}" class="badge bg-info text-dark"
+                                  th:text="'#' + ${r.queuePosition}"></span>
+                            <span th:unless="${r.status.name() == 'PENDING'}">-</span>
+                        </td>
+                        <td>
+                            <span th:switch="${r.status.name()}">
+                                <span th:case="'PENDING'" class="badge bg-warning text-dark">Pending</span>
+                                <span th:case="'READY'" class="badge bg-success">Ready to Pick Up!</span>
+                                <span th:case="'CANCELLED'" class="badge bg-secondary">Cancelled</span>
+                                <span th:case="'FULFILLED'" class="badge bg-primary">Fulfilled</span>
+                                <span th:case="'EXPIRED'" class="badge bg-danger">Expired</span>
+                            </span>
+                        </td>
+                        <td th:text="${r.expiryDate != null ? #temporals.format(r.expiryDate,'dd/MM/yyyy') : '-'}"></td>
+                        <td>
+                            <form th:if="${r.status.name() == 'PENDING' or r.status.name() == 'READY'}"
+                                  th:action="@{/reservations/{id}/cancel(id=${r.id})}" method="post">
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Cancel this reservation?')">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4" th:if="${reservations.totalPages > 1}">
+        <nav><ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${reservations.first}?'disabled'">
+                <a class="page-link" th:href="@{/reservations(page=${reservations.number-1})}">Previous</a>
+            </li>
+            <li th:each="i:${#numbers.sequence(0,reservations.totalPages-1)}" class="page-item"
+                th:classappend="${i==reservations.number}?'active'">
+                <a class="page-link" th:href="@{/reservations(page=${i})}" th:text="${i+1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${reservations.last}?'disabled'">
+                <a class="page-link" th:href="@{/reservations(page=${reservations.number+1})}">Next</a>
+            </li>
+        </ul></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

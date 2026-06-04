@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Authors')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<div class="container py-4" style="max-width:1000px;">
+    <h2 class="mb-4"><i class="bi bi-person-lines-fill me-2"></i>Author Management</h2>
+
+    <div class="row g-4">
+        <!-- ===== FORM THÊM / SỬA ===== -->
+        <div class="col-md-4">
+            <!-- Form THÊM MỚI -->
+            <div class="card shadow-sm" th:unless="${editAuthor != null}">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="bi bi-person-plus me-1"></i>Add New Author</h6>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/books/authors/save}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control"
+                                   placeholder="e.g. Robert C. Martin" required autofocus/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nationality</label>
+                            <input type="text" name="nationality" class="form-control"
+                                   placeholder="e.g. American"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Biography</label>
+                            <textarea name="biography" class="form-control" rows="3"
+                                      placeholder="Short biography..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle me-1"></i>Add Author
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form SỬA (hiện khi click Edit) -->
+            <div class="card shadow-sm border-warning" th:if="${editAuthor != null}">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-pencil me-1"></i>Edit Author</h6>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/books/authors/save}" method="post">
+                        <input type="hidden" name="id" th:value="${editAuthor.id}"/>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control"
+                                   th:value="${editAuthor.name}" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nationality</label>
+                            <input type="text" name="nationality" class="form-control"
+                                   th:value="${editAuthor.nationality}"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Biography</label>
+                            <textarea name="biography" class="form-control" rows="3"
+                                      th:text="${editAuthor.biography}"></textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning flex-grow-1">
+                                <i class="bi bi-save me-1"></i>Save Changes
+                            </button>
+                            <a th:href="@{/books/authors}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tip box -->
+            <div class="card border-0 bg-light mt-3">
+                <div class="card-body py-2 small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Authors can be assigned to books when adding or editing a book.
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== DANH SÁCH AUTHORS ===== -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        All Authors
+                        <span class="badge bg-primary ms-1" th:text="${authors.size()}"></span>
+                    </h6>
+                    <small class="text-muted" th:if="${!authors.empty}"
+                           th:text="${authors.size()} + ' author(s) total'"></small>
+                </div>
+
+                <div th:if="${authors.empty}" class="text-center py-5 text-muted">
+                    <i class="bi bi-person-x fs-2"></i>
+                    <p class="mt-2 mb-0">No authors yet. Add the first one!</p>
+                </div>
+
+                <div class="table-responsive" th:unless="${authors.empty}">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:35%">Name</th>
+                                <th style="width:20%">Nationality</th>
+                                <th>Biography</th>
+                                <th style="width:60px" class="text-center">Books</th>
+                                <th style="width:100px">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="a : ${authors}"
+                                th:classappend="${editAuthor != null and editAuthor.id == a.id} ? 'table-warning' : ''">
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold flex-shrink-0"
+                                             style="width:34px;height:34px;font-size:0.85rem;"
+                                             th:text="${a.name.substring(0,1).toUpperCase()}"></div>
+                                        <span class="fw-semibold" th:text="${a.name}"></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span th:if="${a.nationality != null}"
+                                          class="badge bg-light text-dark border"
+                                          th:text="${a.nationality}"></span>
+                                    <span th:unless="${a.nationality != null}" class="text-muted small">—</span>
+                                </td>
+                                <td>
+                                    <span class="text-muted small"
+                                          th:if="${a.biography != null}"
+                                          th:text="${a.biography.length() > 60 ? a.biography.substring(0,60) + '...' : a.biography}"></span>
+                                    <span class="text-muted small" th:unless="${a.biography != null}">—</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary rounded-pill"
+                                          th:text="${a.books != null ? a.books.size() : 0}"></span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <!-- Edit -->
+                                        <a th:href="@{/books/authors(editId=${a.id})}"
+                                           class="btn btn-sm btn-outline-warning"
+                                           title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <!-- Delete -->
+                                        <form th:action="@{/books/authors/{id}/delete(id=${a.id})}"
+                                              method="post"
+                                              onsubmit="return confirm('Delete author: ' + this.dataset.name + '?')"
+                                              th:attr="data-name=${a.name}">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-outline-danger"
+                                                    title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

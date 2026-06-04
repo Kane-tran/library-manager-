@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('My Fines')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container py-4">
+    <h2 class="mb-4"><i class="bi bi-cash me-2"></i>My Fines</h2>
+
+    <div th:if="${totalUnpaid.compareTo(T(java.math.BigDecimal).ZERO) > 0}"
+         class="alert alert-warning d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div>
+            You have unpaid fines totaling
+            <strong th:text="${#numbers.formatDecimal(totalUnpaid,0,'COMMA',0,'POINT')} + ' ₫'"></strong>.
+            Please pay at the library counter to continue borrowing books.
+        </div>
+    </div>
+
+    <div th:if="${fines.empty}" class="text-center py-5 text-muted">
+        <i class="bi bi-check-circle fs-1 text-success"></i>
+        <p class="mt-2">No fines. Keep returning books on time!</p>
+    </div>
+
+    <div class="card shadow-sm" th:unless="${fines.empty}">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr><th>Book</th><th>Overdue Days</th><th>Amount</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="f : ${fines.content}">
+                        <td th:text="${f.borrowRecord.book.title}" class="fw-semibold"></td>
+                        <td th:text="${f.description}" class="small text-muted"></td>
+                        <td th:text="${#numbers.formatDecimal(f.amount,0,'COMMA',0,'POINT')} + ' ₫'"></td>
+                        <td th:text="${#numbers.formatDecimal(f.paidAmount,0,'COMMA',0,'POINT')} + ' ₫'"></td>
+                        <td class="fw-semibold text-danger"
+                            th:text="${#numbers.formatDecimal(f.remainingAmount,0,'COMMA',0,'POINT')} + ' ₫'"></td>
+                        <td>
+                            <span th:switch="${f.status.name()}">
+                                <span th:case="'PENDING'" class="badge bg-danger">Pending</span>
+                                <span th:case="'PARTIAL'" class="badge bg-warning text-dark">Partial</span>
+                                <span th:case="'PAID'" class="badge bg-success">Paid</span>
+                                <span th:case="'WAIVED'" class="badge bg-secondary">Waived</span>
+                            </span>
+                        </td>
+                        <td th:text="${#temporals.format(f.fineDate,'dd/MM/yyyy')}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4" th:if="${fines.totalPages > 1}">
+        <nav><ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${fines.first}?'disabled'">
+                <a class="page-link" th:href="@{/fines(page=${fines.number-1})}">Previous</a>
+            </li>
+            <li th:each="i:${#numbers.sequence(0,fines.totalPages-1)}" class="page-item"
+                th:classappend="${i==fines.number}?'active'">
+                <a class="page-link" th:href="@{/fines(page=${i})}" th:text="${i+1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${fines.last}?'disabled'">
+                <a class="page-link" th:href="@{/fines(page=${fines.number+1})}">Next</a>
+            </li>
+        </ul></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Edit User')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container py-4" style="max-width:560px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/admin/users}">Users</a></li>
+            <li class="breadcrumb-item active">Edit</li>
+        </ol>
+    </nav>
+    <div class="card shadow-sm">
+        <div class="card-header"><h5 class="mb-0">Edit User: <span th:text="${user.username}"></span></h5></div>
+        <div class="card-body">
+            <form th:action="@{/admin/users/{id}/update(id=${user.id})}" method="post" th:object="${user}">
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" th:field="*{fullName}" class="form-control" required/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" th:field="*{email}" class="form-control" required/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" th:field="*{phone}" class="form-control"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Student/Lecturer ID</label>
+                    <input type="text" th:field="*{studentId}" class="form-control"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Role</label>
+                    <select th:field="*{role}" class="form-select">
+                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"></option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Save Changes
+                    </button>
+                    <a th:href="@{/admin/users}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

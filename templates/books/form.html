@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Book Form')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<div class="container py-4" style="max-width:800px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/books}">Books</a></li>
+            <li class="breadcrumb-item active" th:text="${book.id == null} ? 'Add Book' : 'Edit Book'"></li>
+        </ol>
+    </nav>
+
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0" th:text="${book.id == null} ? 'Add New Book' : 'Edit Book'"></h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${imageError}" class="alert alert-warning" th:text="${imageError}"></div>
+
+            <form th:action="@{/books/save}" method="post"
+                  th:object="${book}" enctype="multipart/form-data">
+                <input type="hidden" th:field="*{id}"/>
+                <input type="hidden" th:field="*{availableCopies}"/>
+                <input type="hidden" th:field="*{coverImageUrl}" id="currentCoverUrl"/>
+
+                <div class="row g-3">
+                    <!-- Cột trái: thông tin sách -->
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Title *</label>
+                            <input type="text" th:field="*{title}" class="form-control"
+                                   th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'" required/>
+                            <div class="invalid-feedback" th:errors="*{title}"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">ISBN</label>
+                                <input type="text" th:field="*{isbn}" class="form-control"
+                                       placeholder="e.g. 123456" maxlength="20"/>
+                                <div class="form-text">Min 6 digits, optional</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Category</label>
+                                <select name="categoryId" class="form-select">
+                                    <option value="">-- No Category --</option>
+                                    <option th:each="cat : ${categories}"
+                                            th:value="${cat.id}"
+                                            th:text="${cat.name}"
+                                            th:selected="${book.category != null and book.category.id == cat.id}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">Publisher</label>
+                                <input type="text" th:field="*{publisher}" class="form-control"/>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold">Year</label>
+                                <input type="number" th:field="*{publishedYear}" class="form-control" min="1000" max="2099"/>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label fw-semibold">Copies *</label>
+                                <input type="number" th:field="*{totalCopies}" class="form-control" min="1" required/>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Language</label>
+                            <input type="text" th:field="*{language}" class="form-control"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Authors</label>
+                            <select name="authorIds" class="form-select" multiple size="4">
+                                <option th:each="author : ${authors}"
+                                        th:value="${author.id}"
+                                        th:text="${author.name}"
+                                        th:selected="${book.authors != null and book.authors.contains(author)}"></option>
+                            </select>
+                            <small class="text-muted">Hold Ctrl/Cmd to select multiple</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea th:field="*{description}" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Cột phải: ảnh bìa -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Cover Image</label>
+
+                        <!-- Preview ảnh hiện tại -->
+                        <div class="card bg-light border mb-3" style="height:220px; overflow:hidden;"
+                             id="previewBox">
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <img th:if="${book.coverImageUrl != null}"
+                                     th:src="${book.coverImageUrl}"
+                                     id="previewImg"
+                                     class="img-fluid rounded"
+                                     style="max-height:200px; object-fit:contain;"
+                                     alt="cover"/>
+                                <div th:unless="${book.coverImageUrl != null}"
+                                     id="noImgPlaceholder"
+                                     class="text-center text-muted p-3">
+                                    <i class="bi bi-image" style="font-size:3rem;"></i>
+                                    <p class="small mt-2 mb-0">No image</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload ảnh mới -->
+                        <div class="mb-3">
+                            <label class="form-label">Upload Image File</label>
+                            <input type="file" name="coverImageFile" id="coverImageFile"
+                                   class="form-control" accept="image/*"
+                                   onchange="previewImage(this)"/>
+                            <small class="text-muted">JPG, PNG, GIF, WEBP — max 5MB</small>
+                        </div>
+
+                        <!-- Hoặc nhập URL -->
+                        <div class="mb-3">
+                            <label class="form-label">Or Image URL</label>
+                            <input type="url" th:field="*{coverImageUrl}"
+                                   class="form-control" placeholder="https://..."
+                                   oninput="updatePreviewFromUrl(this.value)"/>
+                        </div>
+
+                        <!-- Xóa ảnh hiện tại -->
+                        <div th:if="${book.coverImageUrl != null}" class="mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger w-100"
+                                    onclick="clearImage()">
+                                <i class="bi bi-trash me-1"></i>Remove Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>Save Book
+                    </button>
+                    <a th:href="@{/books}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            showPreview(e.target.result);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function updatePreviewFromUrl(url) {
+    if (url && url.startsWith('http')) {
+        showPreview(url);
+    }
+}
+
+function showPreview(src) {
+    let img = document.getElementById('previewImg');
+    let placeholder = document.getElementById('noImgPlaceholder');
+    if (!img) {
+        img = document.createElement('img');
+        img.id = 'previewImg';
+        img.className = 'img-fluid rounded';
+        img.style = 'max-height:200px; object-fit:contain;';
+        img.alt = 'cover';
+        document.getElementById('previewBox').querySelector('.d-flex').appendChild(img);
+    }
+    img.src = src;
+    img.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+}
+
+function clearImage() {
+    document.getElementById('currentCoverUrl').value = '';
+    document.getElementById('coverImageFile').value = '';
+    const img = document.getElementById('previewImg');
+    if (img) img.style.display = 'none';
+    const placeholder = document.getElementById('noImgPlaceholder');
+    if (placeholder) placeholder.style.display = 'block';
+}
+</script>
+</body>
+</html>

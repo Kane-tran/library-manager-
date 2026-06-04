@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('All Borrows')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-list-check me-2"></i>All Borrow Records</h2>
+        <a th:href="@{/borrow/issue}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Issue Book
+        </a>
+    </div>
+
+    <!-- Status filter -->
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+        <a th:href="@{/borrow/all}" class="btn btn-sm" th:classappend="${selectedStatus == null}?'btn-primary':'btn-outline-secondary'">All</a>
+        <a th:each="s : ${statuses}" th:href="@{/borrow/all(status=${s.name()})}"
+           class="btn btn-sm"
+           th:classappend="${selectedStatus == s.name()}?'btn-primary':'btn-outline-secondary'"
+           th:text="${s.name()}"></a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th><th>Member</th><th>Book</th><th>Borrow Date</th>
+                        <th>Due Date</th><th>Return Date</th><th>Status</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="r : ${records.content}">
+                        <td th:text="${r.id}" class="text-muted small"></td>
+                        <td>
+                            <div th:text="${r.user.fullName}" class="fw-semibold"></div>
+                            <small class="text-muted" th:text="${r.user.username}"></small>
+                        </td>
+                        <td th:text="${r.book.title}"></td>
+                        <td th:text="${#temporals.format(r.borrowDate,'dd/MM/yyyy')}"></td>
+                        <td>
+                            <span th:text="${#temporals.format(r.dueDate,'dd/MM/yyyy')}"></span>
+                            <span th:if="${r.overdue}" class="badge bg-danger ms-1">Overdue</span>
+                        </td>
+                        <td th:text="${r.returnDate != null ? #temporals.format(r.returnDate,'dd/MM/yyyy') : '-'}"></td>
+                        <td>
+                            <span th:switch="${r.status.name()}">
+                                <span th:case="'ACTIVE'" class="badge bg-success">Active</span>
+                                <span th:case="'RETURNED'" class="badge bg-secondary">Returned</span>
+                                <span th:case="'OVERDUE'" class="badge bg-danger">Overdue</span>
+                                <span th:case="'LOST'" class="badge bg-dark">Lost</span>
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <form th:if="${r.status.name() == 'ACTIVE' or r.status.name() == 'OVERDUE'}"
+                                      th:action="@{/borrow/{id}/return(id=${r.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                            onclick="return confirm('Mark as returned?')">
+                                        <i class="bi bi-check2"></i> Return
+                                    </button>
+                                </form>
+                                <form th:if="${r.status.name() == 'ACTIVE'}"
+                                      th:action="@{/borrow/{id}/lost(id=${r.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-dark"
+                                            onclick="return confirm('Mark as lost?')">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${records.empty}">
+                        <td colspan="8" class="text-center text-muted py-4">No records found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4" th:if="${records.totalPages > 1}">
+        <nav><ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${records.first}?'disabled'">
+                <a class="page-link" th:href="@{/borrow/all(page=${records.number-1},status=${selectedStatus})}">Previous</a>
+            </li>
+            <li th:each="i:${#numbers.sequence(0,records.totalPages-1)}" class="page-item"
+                th:classappend="${i==records.number}?'active'">
+                <a class="page-link" th:href="@{/borrow/all(page=${i},status=${selectedStatus})}" th:text="${i+1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${records.last}?'disabled'">
+                <a class="page-link" th:href="@{/borrow/all(page=${records.number+1},status=${selectedStatus})}">Next</a>
+            </li>
+        </ul></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

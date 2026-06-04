@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:replace="~{fragments/layout :: head('Dashboard')}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+
+<div class="container-fluid py-4">
+    <h2 class="mb-4">
+        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        <small class="text-muted fs-6 ms-2" th:text="'Welcome, ' + ${currentUser.fullName}"></small>
+    </h2>
+
+    <!-- Staff Dashboard -->
+    <div th:if="${isStaff}">
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold" th:text="${totalBooks}">0</div>
+                            <div>Total Books</div>
+                        </div>
+                        <i class="bi bi-book fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-success text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold" th:text="${availableBooks}">0</div>
+                            <div>Available Books</div>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-warning text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold" th:text="${activeBorrows}">0</div>
+                            <div>Active Borrows</div>
+                        </div>
+                        <i class="bi bi-arrow-left-right fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-danger text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold" th:text="${overdueCount}">0</div>
+                            <div>Overdue</div>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-info" th:text="${totalUsers}">0</div>
+                        <div class="text-muted">Registered Users</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-secondary" th:text="${pendingReservations}">0</div>
+                        <div class="text-muted">Pending Reservations</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-danger"
+                             th:text="${#numbers.formatDecimal(totalFines, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0</div>
+                        <div class="text-muted">Total Fines Issued</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="fs-3 fw-bold text-success"
+                             th:text="${#numbers.formatDecimal(collectedFines, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0</div>
+                        <div class="text-muted">Fines Collected</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row g-3">
+            <div class="col-12"><h5>Quick Actions</h5></div>
+            <div class="col-auto">
+                <a th:href="@{/borrow/issue}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Issue Book
+                </a>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/borrow/all?status=OVERDUE}" class="btn btn-danger">
+                    <i class="bi bi-exclamation-triangle me-1"></i>View Overdue
+                </a>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/books/import}" class="btn btn-outline-secondary">
+                    <i class="bi bi-upload me-1"></i>Import Books
+                </a>
+            </div>
+            <div class="col-auto" sec:authorize="hasRole('MANAGER')">
+                <a th:href="@{/admin/reports}" class="btn btn-outline-info">
+                    <i class="bi bi-bar-chart me-1"></i>Reports
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Member Dashboard -->
+    <div th:unless="${isStaff}">
+        <div class="row g-4 mb-4">
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm bg-primary text-white">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold" th:text="${myActiveBorrows} + '/' + ${maxBooks}">0/3</div>
+                            <div>Books Borrowed</div>
+                        </div>
+                        <i class="bi bi-book fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm" th:classappend="${myOverdue > 0} ? 'bg-danger text-white' : 'bg-success text-white'">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold" th:text="${myOverdue}">0</div>
+                            <div>Overdue Books</div>
+                        </div>
+                        <i class="bi bi-exclamation-triangle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3">
+                <div class="card border-0 shadow-sm" th:classappend="${myUnpaidFines.compareTo(T(java.math.BigDecimal).ZERO) > 0} ? 'bg-warning text-white' : 'bg-light'">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fs-2 fw-bold"
+                                 th:text="${#numbers.formatDecimal(myUnpaidFines, 0, 'COMMA', 0, 'POINT')} + ' ₫'">0</div>
+                            <div>Unpaid Fines</div>
+                        </div>
+                        <i class="bi bi-cash fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-12"><h5>Quick Actions</h5></div>
+            <div class="col-auto">
+                <a th:href="@{/books}" class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i>Browse Books
+                </a>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/borrow}" class="btn btn-outline-primary">
+                    <i class="bi bi-list me-1"></i>My Borrows
+                </a>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/reservations}" class="btn btn-outline-secondary">
+                    <i class="bi bi-bookmark me-1"></i>My Reservations
+                </a>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/fines}" class="btn btn-outline-warning">
+                    <i class="bi bi-cash me-1"></i>My Fines
+                </a>
+            </div>
+            <div class="col-auto">
+                <a th:href="@{/reservations}" class="btn btn-outline-secondary">
+                    <i class="bi bi-bookmark me-1"></i>Reservations
+                    <span th:if="${myReservations > 0}" class="badge bg-warning text-dark ms-1"
+                          th:text="${myReservations}"></span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Loan info -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="alert alert-light border py-2 small">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>
+                    Your plan: <strong th:text="${maxBooks}"></strong> books max &nbsp;|&nbsp;
+                    Loan period: <strong th:text="${loanDays}"></strong> days &nbsp;|&nbsp;
+                    Active reservations: <strong th:text="${myReservations}"></strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

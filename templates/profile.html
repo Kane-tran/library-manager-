@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Profile')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container py-4" style="max-width:700px;">
+    <h2 class="mb-4"><i class="bi bi-person-circle me-2"></i>My Profile</h2>
+    <div class="row g-4">
+        <!-- Profile Info -->
+        <div class="col-md-7">
+            <div class="card shadow-sm">
+                <div class="card-header"><h6 class="mb-0">Personal Information</h6></div>
+                <div class="card-body">
+                    <form th:action="@{/profile/update}" method="post" th:object="${user}">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" th:field="*{fullName}" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" th:field="*{email}" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="text" th:field="*{phone}" class="form-control"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Student/Lecturer ID</label>
+                            <input type="text" th:field="*{studentId}" class="form-control"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Role</label>
+                            <input type="text" th:value="${user.role}" class="form-control" disabled/>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-1"></i>Update Profile
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Change Password -->
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header"><h6 class="mb-0">Change Password</h6></div>
+                <div class="card-body">
+                    <form th:action="@{/profile/change-password}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Current Password</label>
+                            <input type="password" name="oldPassword" class="form-control" required/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="newPassword" class="form-control" required minlength="6"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirm New Password</label>
+                            <input type="password" name="confirmPassword" class="form-control" required minlength="6"/>
+                        </div>
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="bi bi-lock me-1"></i>Change Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Account Info -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Account Info</h6>
+                    <div class="small">
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="text-muted">Username</span>
+                            <strong th:text="${user.username}"></strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="text-muted">Max books</span>
+                            <strong th:text="${user.maxBooks}"></strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="text-muted">Loan period</span>
+                            <strong th:text="${user.loanDays} + ' days'"></strong>
+                        </div>
+                        <div class="d-flex justify-content-between py-1">
+                            <span class="text-muted">Member since</span>
+                            <strong th:text="${#temporals.format(user.createdAt,'dd/MM/yyyy')}"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

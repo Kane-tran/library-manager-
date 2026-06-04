@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Import Books')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container py-4" style="max-width:700px;">
+    <h2 class="mb-4"><i class="bi bi-upload me-2"></i>Import Books from CSV</h2>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h6 class="mb-0">CSV Format</h6></div>
+        <div class="card-body">
+            <p class="text-muted small mb-2">Your CSV file must have the following columns in order:</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-bordered small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th><th>Column</th><th>Required</th><th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1</td><td>title</td><td><span class="badge bg-danger">Yes</span></td><td>Clean Code</td></tr>
+                        <tr><td>2</td><td>isbn</td><td><span class="badge bg-secondary">No</span></td><td>978-0-13-468599-1</td></tr>
+                        <tr><td>3</td><td>description</td><td><span class="badge bg-secondary">No</span></td><td>A book about...</td></tr>
+                        <tr><td>4</td><td>totalCopies</td><td><span class="badge bg-danger">Yes</span></td><td>3</td></tr>
+                        <tr><td>5</td><td>publishedYear</td><td><span class="badge bg-secondary">No</span></td><td>2008</td></tr>
+                        <tr><td>6</td><td>publisher</td><td><span class="badge bg-secondary">No</span></td><td>Prentice Hall</td></tr>
+                        <tr><td>7</td><td>language</td><td><span class="badge bg-secondary">No</span></td><td>English</td></tr>
+                        <tr><td>8</td><td>categoryName</td><td><span class="badge bg-secondary">No</span></td><td>Programming</td></tr>
+                        <tr><td>9</td><td>authorNames</td><td><span class="badge bg-secondary">No</span></td><td>Robert C. Martin;John Doe</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-info py-2 small mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Multiple authors must be separated by <strong>semicolons (;)</strong>.
+                Categories and authors are created automatically if they don't exist.
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header"><h6 class="mb-0">Upload File</h6></div>
+        <div class="card-body">
+            <form th:action="@{/books/import}" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">Select CSV File *</label>
+                    <input type="file" name="file" class="form-control" accept=".csv" required/>
+                    <div class="form-text">Maximum file size: 10MB</div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-cloud-upload me-1"></i>Import Books
+                    </button>
+                    <a th:href="@{/books}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

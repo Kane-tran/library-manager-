@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Login')}"></head>
+<body class="bg-light">
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow" style="width: 420px;">
+        <div class="card-header bg-primary text-white text-center py-3">
+            <h4 class="mb-0"><i class="bi bi-book-fill me-2"></i>Library Management</h4>
+        </div>
+        <div class="card-body p-4">
+            <h5 class="card-title text-center mb-4">Sign In</h5>
+
+            <div th:if="${param.error}" class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-1"></i> Invalid username or password.
+            </div>
+            <div th:if="${param.logout}" class="alert alert-success">
+                <i class="bi bi-check-circle me-1"></i> Logged out successfully.
+            </div>
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+            <form th:action="@{/auth/login}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus/>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" class="form-control" placeholder="Enter password" required/>
+                    </div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" name="remember-me" id="rememberMe"/>
+                    <label class="form-check-label" for="rememberMe">Remember me</label>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In
+                </button>
+            </form>
+
+            <hr/>
+            <p class="text-center mb-0">
+                Don't have an account?
+                <a th:href="@{/auth/register}">Register here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

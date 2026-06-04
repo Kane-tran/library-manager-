@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Register')}"></head>
+<body class="bg-light">
+
+<div class="container d-flex justify-content-center align-items-center min-vh-100 py-4">
+    <div class="card shadow" style="width: 480px;">
+        <div class="card-header bg-primary text-white text-center py-3">
+            <h4 class="mb-0"><i class="bi bi-book-fill me-2"></i>Library Management</h4>
+        </div>
+        <div class="card-body p-4">
+            <h5 class="card-title text-center mb-4">Create Account</h5>
+
+            <!-- Server-side error messages -->
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+            <form th:action="@{/auth/register}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Full Name *</label>
+                    <input type="text" name="fullName" class="form-control" required
+                           th:value="${param.fullName}"/>
+                </div>
+                <div class="row">
+                    <div class="col mb-3">
+                        <label class="form-label">Username *</label>
+                        <input type="text" name="username" class="form-control" required minlength="3"
+                               th:value="${param.username}"
+                               th:classappend="${usernameError != null} ? 'is-invalid'"/>
+                        <div class="invalid-feedback" th:if="${usernameError}" th:text="${usernameError}"></div>
+                    </div>
+                    <div class="col mb-3">
+                        <label class="form-label">Role *</label>
+                        <select name="role" class="form-select" required>
+                            <option value="STUDENT">Student</option>
+                            <option value="LECTURER">Lecturer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" name="email" class="form-control" required
+                           th:value="${param.email}"
+                           th:classappend="${emailError != null} ? 'is-invalid'"/>
+                    <div class="invalid-feedback" th:if="${emailError}" th:text="${emailError}"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Student/Lecturer ID</label>
+                    <input type="text" name="studentId" class="form-control" placeholder="Optional"
+                           th:value="${param.studentId}"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="phone" class="form-control" placeholder="Optional"
+                           th:value="${param.phone}"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password *</label>
+                    <input type="password" name="password" id="password" class="form-control"
+                           required minlength="6" placeholder="At least 6 characters"/>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Confirm Password *</label>
+                    <input type="password" name="confirmPassword" id="confirmPassword" class="form-control"
+                           required minlength="6" placeholder="Repeat password"/>
+                    <div class="invalid-feedback" id="pwFeedback">Passwords do not match</div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                    <i class="bi bi-person-plus me-1"></i> Register
+                </button>
+            </form>
+
+            <hr/>
+            <p class="text-center mb-0">
+                Already have an account? <a th:href="@{/auth/login}">Sign in</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts}"></div>
+<script>
+document.getElementById('submitBtn').addEventListener('click', function(e) {
+    const pw = document.getElementById('password').value;
+    const cpw = document.getElementById('confirmPassword').value;
+    const fb = document.getElementById('pwFeedback');
+    const cpwInput = document.getElementById('confirmPassword');
+    if (pw !== cpw) {
+        e.preventDefault();
+        cpwInput.classList.add('is-invalid');
+        fb.style.display = 'block';
+    } else {
+        cpwInput.classList.remove('is-invalid');
+        fb.style.display = 'none';
+    }
+});
+</script>
+</body>
+</html>

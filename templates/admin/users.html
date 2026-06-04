@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Users')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container-fluid py-4">
+    <h2 class="mb-4"><i class="bi bi-people me-2"></i>User Management</h2>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body py-2">
+            <form th:action="@{/admin/users}" method="get" class="d-flex gap-2">
+                <div class="input-group" style="max-width:400px;">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" th:value="${q}" class="form-control" placeholder="Search name, username, email..."/>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a th:href="@{/admin/users}" class="btn btn-outline-secondary">Clear</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr><th>ID</th><th>Full Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${users.content}">
+                        <td class="text-muted small" th:text="${u.id}"></td>
+                        <td class="fw-semibold" th:text="${u.fullName}"></td>
+                        <td th:text="${u.username}"></td>
+                        <td class="text-muted small" th:text="${u.email}"></td>
+                        <td>
+                            <span th:switch="${u.role.name()}">
+                                <span th:case="'STUDENT'" class="badge bg-info text-dark">Student</span>
+                                <span th:case="'LECTURER'" class="badge bg-primary">Lecturer</span>
+                                <span th:case="'LIBRARIAN'" class="badge bg-warning text-dark">Librarian</span>
+                                <span th:case="'MANAGER'" class="badge bg-danger">Manager</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${u.enabled}" class="badge bg-success">Active</span>
+                            <span th:unless="${u.enabled}" class="badge bg-secondary">Disabled</span>
+                        </td>
+                        <td class="small text-muted" th:text="${#temporals.format(u.createdAt,'dd/MM/yyyy')}"></td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a th:href="@{/admin/users/{id}/edit(id=${u.id})}" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form th:action="@{/admin/users/{id}/toggle(id=${u.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm"
+                                            th:classappend="${u.enabled}?'btn-outline-secondary':'btn-outline-success'"
+                                            th:title="${u.enabled}?'Disable':'Enable'">
+                                        <i class="bi" th:classappend="${u.enabled}?'bi-toggle-on':'bi-toggle-off'"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${users.empty}">
+                        <td colspan="8" class="text-center text-muted py-4">No users found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4" th:if="${users.totalPages > 1}">
+        <nav><ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${users.first}?'disabled'">
+                <a class="page-link" th:href="@{/admin/users(page=${users.number-1},q=${q})}">Previous</a>
+            </li>
+            <li th:each="i:${#numbers.sequence(0,users.totalPages-1)}" class="page-item"
+                th:classappend="${i==users.number}?'active'">
+                <a class="page-link" th:href="@{/admin/users(page=${i},q=${q})}" th:text="${i+1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${users.last}?'disabled'">
+                <a class="page-link" th:href="@{/admin/users(page=${users.number+1},q=${q})}">Next</a>
+            </li>
+        </ul></nav>
+        <p class="text-center text-muted small"
+           th:text="'Showing ' + ${users.numberOfElements} + ' of ' + ${users.totalElements} + ' users'"></p>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>

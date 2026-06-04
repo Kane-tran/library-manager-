@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('All Fines')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: navbar}"></nav>
+<div th:replace="~{fragments/layout :: alerts}"></div>
+<div class="container-fluid py-4">
+    <h2 class="mb-4"><i class="bi bi-currency-dollar me-2"></i>All Fines</h2>
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr><th>#</th><th>Member</th><th>Book</th><th>Amount</th><th>Paid</th><th>Remaining</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="f : ${fines.content}">
+                        <td class="text-muted small" th:text="${f.id}"></td>
+                        <td>
+                            <div class="fw-semibold" th:text="${f.borrowRecord.user.fullName}"></div>
+                            <small class="text-muted" th:text="${f.borrowRecord.user.username}"></small>
+                        </td>
+                        <td th:text="${f.borrowRecord.book.title}"></td>
+                        <td th:text="${#numbers.formatDecimal(f.amount,0,'COMMA',0,'POINT')} + ' ₫'"></td>
+                        <td th:text="${#numbers.formatDecimal(f.paidAmount,0,'COMMA',0,'POINT')} + ' ₫'"></td>
+                        <td class="fw-semibold" th:classappend="${f.remainingAmount.compareTo(T(java.math.BigDecimal).ZERO) > 0}?'text-danger':''">
+                            <span th:text="${#numbers.formatDecimal(f.remainingAmount,0,'COMMA',0,'POINT')} + ' ₫'"></span>
+                        </td>
+                        <td>
+                            <span th:switch="${f.status.name()}">
+                                <span th:case="'PENDING'" class="badge bg-danger">Pending</span>
+                                <span th:case="'PARTIAL'" class="badge bg-warning text-dark">Partial</span>
+                                <span th:case="'PAID'" class="badge bg-success">Paid</span>
+                                <span th:case="'WAIVED'" class="badge bg-secondary">Waived</span>
+                            </span>
+                        </td>
+                        <td th:text="${#temporals.format(f.fineDate,'dd/MM/yyyy')}"></td>
+                        <td>
+                            <div class="d-flex gap-1" th:if="${f.status.name() != 'PAID' and f.status.name() != 'WAIVED'}">
+                                <button type="button" class="btn btn-sm btn-outline-success"
+                                        data-bs-toggle="modal"
+                                        th:attr="data-bs-target='#payModal'+${f.id}">
+                                    <i class="bi bi-cash me-1"></i>Pay
+                                </button>
+                                <form th:action="@{/fines/{id}/waive(id=${f.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary"
+                                            onclick="return confirm('Waive this fine?')">
+                                        <i class="bi bi-eraser"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <!-- Pay Modal -->
+                            <div class="modal fade" th:id="'payModal'+${f.id}" tabindex="-1">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h6 class="modal-title">Record Payment</h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form th:action="@{/fines/{id}/pay(id=${f.id})}" method="post">
+                                            <div class="modal-body">
+                                                <p class="small text-muted mb-2"
+                                                   th:text="'Remaining: ' + ${#numbers.formatDecimal(f.remainingAmount,0,'COMMA',0,'POINT')} + ' ₫'"></p>
+                                                <input type="number" name="amount" class="form-control"
+                                                       th:value="${f.remainingAmount}" min="1" step="1000" required/>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-success btn-sm">Confirm</button>
+                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${fines.empty}">
+                        <td colspan="9" class="text-center text-muted py-4">No fines found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="mt-4" th:if="${fines.totalPages > 1}">
+        <nav><ul class="pagination justify-content-center">
+            <li class="page-item" th:classappend="${fines.first}?'disabled'">
+                <a class="page-link" th:href="@{/fines/all(page=${fines.number-1})}">Previous</a>
+            </li>
+            <li th:each="i:${#numbers.sequence(0,fines.totalPages-1)}" class="page-item"
+                th:classappend="${i==fines.number}?'active'">
+                <a class="page-link" th:href="@{/fines/all(page=${i})}" th:text="${i+1}"></a>
+            </li>
+            <li class="page-item" th:classappend="${fines.last}?'disabled'">
+                <a class="page-link" th:href="@{/fines/all(page=${fines.number+1})}">Next</a>
+            </li>
+        </ul></nav>
+    </div>
+</div>
+<div th:replace="~{fragments/layout :: scripts}"></div>
+</body>
+</html>
